@@ -1,0 +1,12 @@
+langgraph
+langchain
+langchain-google-genai
+chromadb
+networkx
+pydantic
+python-dotenv
+langsmith
+mcp
+jupyter
+ruff
+pytest
