@@ -16,19 +16,25 @@ An end-to-end coding agent portfolio project demonstrating state-of-the-art (SOT
 ## 🚀 Getting Started
 
 1. Clone the repository: `git clone https://github.com/vishnubv89/agentic_coder.git`
-2. Set up a virtual environment:
+2. Set up the Python Backend:
    ```bash
    python3 -m venv venv
    source venv/bin/activate
    pip install -r requirements.txt
    ```
-3. Copy `.env.example` to `.env` and add your API keys:
+3. Set up the React Frontend:
+   ```bash
+   cd frontend
+   npm install
+   ```
+4. Copy `.env.example` to `.env` and add your API keys:
    - `GEMINI_API_KEY`: Required for the LLM agents.
    - `LANGCHAIN_API_KEY`: Required for LangSmith tracing.
-4. Run the orchestrator:
-   ```bash
-   python main.py
-   ```
+5. Run the Application:
+   - Terminal 1 (Backend): `uvicorn api.server:app --reload`
+   - Terminal 2 (Frontend): `cd frontend && npm run dev`
+   
+   Then open the provided `localhost:5173` URL to view the AgenticCoder IDE!
 
 ## 🔍 Observability with LangSmith
 This project comes pre-configured with LangSmith. As long as `LANGCHAIN_TRACING_V2=true` is in your `.env` file, all graph executions, tool calls, and LLM prompts will be logged to your LangSmith dashboard under the project `agentic-coder-portfolio`.

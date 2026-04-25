@@ -10,3 +10,6 @@ mcp
 jupyter
 ruff
 pytest
+fastapi
+uvicorn
+websockets
