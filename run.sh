@@ -11,6 +11,11 @@ lsof -ti:5173 | xargs kill -9 2>/dev/null
 echo -e "${GREEN}Starting AgenticCoder Backend (FastAPI)...${NC}"
 # Start the backend in the background
 source venv/bin/activate
+
+# Index the codebase for RAG
+echo -e "${GREEN}Indexing codebase for Hybrid RAG...${NC}"
+python -m rag.indexer
+
 uvicorn api.server:app --reload &
 BACKEND_PID=$!
 
