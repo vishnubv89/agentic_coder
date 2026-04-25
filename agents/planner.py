@@ -8,7 +8,7 @@ def planner_node(state: AgenticCoderState) -> AgenticCoderState:
     print("Planner Agent: Analyzing task and creating plan...")
     task = state.get("task_description", "")
     
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", google_api_key=config.GEMINI_API_KEY, temperature=0)
+    llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", google_api_key=config.GEMINI_API_KEY, temperature=0)
     
     system_prompt = """You are the Lead Technical Planner of an AI Agentic Coding System.
     Your job is to break down the user's coding request into a clear, step-by-step implementation plan.

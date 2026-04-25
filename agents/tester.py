@@ -7,7 +7,7 @@ from tools import AGENT_TOOLS
 def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     print("Tester Agent: Testing code artifacts...")
     
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", google_api_key=config.GEMINI_API_KEY, temperature=0)
+    llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", google_api_key=config.GEMINI_API_KEY, temperature=0)
     llm_with_tools = llm.bind_tools(AGENT_TOOLS)
     
     system_prompt = """You are a QA Tester Agent.
