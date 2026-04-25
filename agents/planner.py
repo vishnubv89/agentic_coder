@@ -1,19 +1,41 @@
 from core.state import AgenticCoderState
-from langchain_core.messages import AIMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import SystemMessage, HumanMessage
+from core.config import config
+import json
 
 def planner_node(state: AgenticCoderState) -> AgenticCoderState:
     print("Planner Agent: Analyzing task and creating plan...")
     task = state.get("task_description", "")
     
-    # Placeholder logic - in reality, we'd call an LLM here
-    plan = [
-        "1. Analyze requirements.",
-        "2. Scaffold application structure.",
-        "3. Implement code and tests."
-    ]
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro", google_api_key=config.GEMINI_API_KEY, temperature=0)
     
+    system_prompt = """You are the Lead Technical Planner of an AI Agentic Coding System.
+    Your job is to break down the user's coding request into a clear, step-by-step implementation plan.
+    Return ONLY a JSON array of strings, where each string is a step in the plan.
+    Example: ["1. Set up the Python project.", "2. Write the main logic in app.py", "3. Write tests in test_app.py"]"""
+    
+    response = llm.invoke([
+        SystemMessage(content=system_prompt),
+        HumanMessage(content=f"Create a plan for this task: {task}")
+    ])
+    
+    try:
+        content = response.content.strip()
+        if content.startswith("```json"):
+            content = content[7:-3]
+        elif content.startswith("```"):
+            content = content[3:-3]
+            
+        plan = json.loads(content.strip())
+        if not isinstance(plan, list):
+            plan = [str(plan)]
+    except Exception as e:
+        print(f"Failed to parse plan JSON. Raw output: {response.content}")
+        plan = ["1. Implement the requested feature.", "2. Test the implementation."]
+        
     return {
         "plan": plan,
         "status": "coding",
-        "messages": [AIMessage(content=f"Plan created with {len(plan)} steps.")]
+        "messages": [response]
     }
