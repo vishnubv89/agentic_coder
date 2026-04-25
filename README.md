@@ -1,40 +1,76 @@
-# AgenticCoder: Multi-Agent AI Coding System 🚀
+# AgenticCoder 🤖💻
 
-An end-to-end coding agent portfolio project demonstrating state-of-the-art (SOTA) agentic AI concepts.
+[![Built with LangGraph](https://img.shields.io/badge/LangGraph-State_Machine-blue)](https://python.langchain.com/docs/langgraph/)
+[![Powered by Gemini](https://img.shields.io/badge/Model-Gemini_3.1_Flash_Lite-orange)](https://deepmind.google/technologies/gemini/)
+[![Frontend UI](https://img.shields.io/badge/UI-React_%2B_Vite-61DAFB?logo=react)](https://react.dev)
 
-## 🌟 Market Trending Concepts Showcased
-- **Multi-Agent Orchestration (LangGraph)**: A state-machine based workflow where specialized agents (Planner, Coder, Tester) collaborate iteratively.
-- **Hybrid Retrieval (RAG + GraphRAG)**: Combines semantic vector search (ChromaDB) with codebase AST mapping (NetworkX) to provide the Coder Agent with deep context.
-- **Model Context Protocol (MCP) Tools**: Standardized, secure tool schemas for file manipulation and isolated code execution sandboxing.
-- **Observability (LangSmith)**: Built-in tracing for visualizing the agent's internal thought processes, LangGraph node transitions, and tool calls.
+An advanced, end-to-end multi-agent AI coding system designed to autonomously plan, write, and test software. AgenticCoder replaces standard linear prompting with a cyclic state-machine orchestrator, ensuring code is verified in an execution sandbox before it is finalized.
 
-## 🏗️ Architecture
-1. **Planner Agent**: Analyzes the user's task and generates a step-by-step execution plan using Gemini 1.5 Pro.
-2. **Coder Agent**: Uses the Hybrid Retriever and MCP file tools to generate and write Python scripts based on the plan.
-3. **Tester Agent**: Uses MCP execution tools to safely run the generated code locally. If it fails, it returns the STDOUT/STDERR to the Coder for revisions.
+📖 **For a deep dive into the architecture, tools, and technical decisions, please read the [PRODUCT BIBLE](PRODUCT_BIBLE.md).**
+
+---
+
+## ✨ Features
+
+- **Multi-Agent Orchestration**: Three distinct agents (`Planner`, `Coder`, and `Tester`) working in a LangGraph state machine loop.
+- **Hybrid Knowledge Retrieval**: Combines Vector RAG (ChromaDB) for semantic code search with GraphRAG (NetworkX + AST) for structural dependency mapping.
+- **MCP Tool Integration**: Secure file system interaction and Python execution sandboxing using `@tool` wrappers.
+- **Premium Web IDE**: A real-time, VS Code-inspired React frontend utilizing Monaco Editor and React Flow to visualize the agent's thought process.
+- **Self-Healing Loop**: If the Tester Agent detects a syntax error or runtime failure, it feeds the stack trace back to the Coder Agent for automatic bug fixing.
+- **Full Observability**: Integrated with LangSmith to trace LLM prompts, token usage, and tool executions.
+
+---
 
 ## 🚀 Getting Started
 
-1. Clone the repository: `git clone https://github.com/vishnubv89/agentic_coder.git`
-2. Set up the Python Backend:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
-3. Set up the React Frontend:
-   ```bash
-   cd frontend
-   npm install
-   ```
-4. Copy `.env.example` to `.env` and add your API keys:
-   - `GEMINI_API_KEY`: Required for the LLM agents.
-   - `LANGCHAIN_API_KEY`: Required for LangSmith tracing.
-5. Run the Application:
-   - Terminal 1 (Backend): `uvicorn api.server:app --reload`
-   - Terminal 2 (Frontend): `cd frontend && npm run dev`
-   
-   Then open the provided `localhost:5173` URL to view the AgenticCoder IDE!
+### 1. Clone the Repository
+```bash
+git clone https://github.com/vishnubv89/agentic_coder.git
+cd agentic_coder
+```
+
+### 2. Set Up the Environment
+You will need your API keys. Copy the example environment file:
+```bash
+cp .env.example .env
+```
+Fill in the `.env` file with your credentials:
+- `GEMINI_API_KEY`: Required for the LLM agents.
+- `LANGCHAIN_API_KEY`: Required for LangSmith tracing.
+
+### 3. Install Dependencies
+```bash
+# Backend Dependencies
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Frontend Dependencies
+cd frontend
+npm install
+cd ..
+```
+
+### 4. Run the Application
+You can easily start both the FastAPI backend and the React frontend simultaneously using the provided startup script:
+```bash
+./run.sh
+```
+
+Once running, open your browser to [http://localhost:5173](http://localhost:5173).
+
+---
 
 ## 🔍 Observability with LangSmith
 This project comes pre-configured with LangSmith. As long as `LANGCHAIN_TRACING_V2=true` is in your `.env` file, all graph executions, tool calls, and LLM prompts will be logged to your LangSmith dashboard under the project `agentic-coder-portfolio`.
+
+---
+
+## 🛠️ Technology Stack
+* **Orchestration**: Python, LangGraph, LangChain
+* **LLM**: Google Gemini 3.1 Flash Lite Preview
+* **Backend**: FastAPI, Uvicorn, WebSockets
+* **Frontend**: React, Vite, Monaco Editor, React Flow
+* **Databases**: ChromaDB (Vector), NetworkX (Graph)
+
+*(For a full breakdown, see the [Product Bible](PRODUCT_BIBLE.md))*
