@@ -18,6 +18,7 @@ def coder_node(state: AgenticCoderState) -> AgenticCoderState:
     Task: {task}
     Plan: {plan}
     
+    IMPORTANT: Only use Python standard library modules (no pandas, numpy, etc.) so the code can be executed in a sandboxed environment.
     You have access to file writing tools to generate the code artifacts.
     If you encountered previous errors, they are listed here to fix: {errors}
     
