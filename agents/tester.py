@@ -7,7 +7,7 @@ from tools import AGENT_TOOLS
 def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     print("Tester Agent: Testing code artifacts...")
     
-    llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", google_api_key=config.GEMINI_API_KEY, temperature=0)
+    llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite-preview", google_api_key=config.GEMINI_API_KEY, temperature=0)
     llm_with_tools = llm.bind_tools(AGENT_TOOLS)
     
     system_prompt = """You are a QA Tester Agent.
@@ -34,18 +34,24 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
                 except Exception as e:
                     print(f"  -> Execution tool error: {e}")
     
-    content = response.content.upper()
-    if "FAILED" in content:
+    content = response.content
+    if isinstance(content, list):
+        content = "".join([c.get("text", "") for c in content if isinstance(c, dict) and "text" in c])
+    elif not isinstance(content, str):
+        content = str(content)
+        
+    content_upper = content.upper()
+    if "FAILED" in content_upper:
         status = "failed"
-        print(f"Tester found issues: {response.content}")
-        errors = [response.content]
+        print(f"Tester found issues: {content}")
+        errors = [content]
     else:
         status = "completed"
         print("Tester approved the code!")
         errors = []
         
     return {
-        "test_results": response.content,
+        "test_results": content,
         "status": status,
         "messages": [response],
         "errors": errors

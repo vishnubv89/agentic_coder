@@ -10,7 +10,7 @@ def coder_node(state: AgenticCoderState) -> AgenticCoderState:
     plan = state.get("plan", [])
     errors = state.get("errors", [])
     
-    llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite", google_api_key=config.GEMINI_API_KEY, temperature=0.2)
+    llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite-preview", google_api_key=config.GEMINI_API_KEY, temperature=0.2)
     llm_with_tools = llm.bind_tools(AGENT_TOOLS)
     
     system_prompt = f"""You are an Expert Coder Agent.
