@@ -21,6 +21,7 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
         HumanMessage(content="Please test the generated code.")
     ])
     
+    execution_logs = []
     if response.tool_calls:
         print(f"Tester Agent is using {len(response.tool_calls)} tools...")
         from tools.execution_tools import execute_python_code
@@ -30,8 +31,10 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
             if tool_fn:
                 try:
                     tool_result = tool_fn.invoke(tc["args"])
+                    execution_logs.append(f"> Running code sandbox...\n{tool_result}")
                     print(f"  -> Execution output: {tool_result}")
                 except Exception as e:
+                    execution_logs.append(f"> Execution error:\n{e}")
                     print(f"  -> Execution tool error: {e}")
     
     content = response.content
@@ -50,8 +53,12 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
         print("Tester approved the code!")
         errors = []
         
+    final_results = content
+    if execution_logs:
+        final_results = "\n\n".join(execution_logs) + "\n\nAgent Conclusion:\n" + content
+        
     return {
-        "test_results": content,
+        "test_results": final_results,
         "status": status,
         "messages": [response],
         "errors": errors
