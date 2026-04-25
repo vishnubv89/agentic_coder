@@ -4,6 +4,10 @@
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
+echo -e "${GREEN}Cleaning up old processes on ports 8000 and 5173...${NC}"
+lsof -ti:8000 | xargs kill -9 2>/dev/null
+lsof -ti:5173 | xargs kill -9 2>/dev/null
+
 echo -e "${GREEN}Starting AgenticCoder Backend (FastAPI)...${NC}"
 # Start the backend in the background
 source venv/bin/activate

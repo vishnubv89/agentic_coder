@@ -29,6 +29,7 @@ def coder_node(state: AgenticCoderState) -> AgenticCoderState:
         HumanMessage(content="Please implement the code now.")
     ])
     
+    code_artifacts = state.get("code_artifacts", {})
     if response.tool_calls:
         print(f"Coder Agent is using {len(response.tool_calls)} tools...")
         from tools.file_tools import write_file, read_file
@@ -42,10 +43,15 @@ def coder_node(state: AgenticCoderState) -> AgenticCoderState:
                 print(f"  -> Executing {tc['name']} with args {tc['args']}")
                 try:
                     tool_fn.invoke(tc["args"])
+                    if tc["name"] == "write_file":
+                        file_path = tc["args"].get("file_path", "unknown.py")
+                        content = tc["args"].get("content", "")
+                        code_artifacts[file_path] = content
                 except Exception as e:
                     print(f"  -> Tool error: {e}")
     
     return {
         "status": "testing",
-        "messages": [response]
+        "messages": [response],
+        "code_artifacts": code_artifacts
     }
