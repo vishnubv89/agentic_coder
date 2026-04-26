@@ -9,6 +9,11 @@ class CodebaseGraph:
 
     def add_file(self, file_path: str, content: str):
         self.graph.add_node(file_path, type="file")
+        
+        # Only parse AST for Python files
+        if not file_path.endswith(".py"):
+            return
+
         try:
             tree = ast.parse(content)
             for node in ast.walk(tree):
@@ -26,8 +31,9 @@ class CodebaseGraph:
                 elif isinstance(node, ast.ImportFrom):
                     if node.module:
                         self.graph.add_edge(file_path, node.module, relation="imports_from")
-        except SyntaxError:
-            print(f"Failed to parse AST for {file_path}")
+        except:
+            # Silent fail for broken python files or non-python content
+            pass
 
     def get_context(self, entity_name: str) -> str:
         context = []
