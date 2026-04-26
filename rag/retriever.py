@@ -6,6 +6,10 @@ class HybridRetriever:
         self.vector_store = VectorStoreManager()
         self.graph_store = CodebaseGraph()
 
+    def clear_index(self):
+        self.vector_store.clear_collection()
+        self.graph_store.graph.clear()
+
     def index_file(self, file_path: str, content: str):
         # Index in Vector RAG
         self.vector_store.add_documents(

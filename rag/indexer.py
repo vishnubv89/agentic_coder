@@ -16,6 +16,9 @@ def index_codebase(root_dir: str = None):
     """Walks the codebase and indexes all useful files into Hybrid RAG."""
     if root_dir is None:
         root_dir = config.PROJECT_ROOT
+    
+    # Clear existing index for fresh start
+    hybrid_retriever.clear_index()
         
     print(f"Starting codebase indexing in {root_dir}...")
     

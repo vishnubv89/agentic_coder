@@ -31,8 +31,7 @@ def planner_node(state: AgenticCoderState) -> AgenticCoderState:
     # RAG: Retrieve context and directory structure
     print(f"Planner Agent: Retrieving codebase context and structure...")
     context = hybrid_retriever.retrieve(task)
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    dir_tree = get_directory_tree(project_root)
+    dir_tree = get_directory_tree(config.PROJECT_ROOT)
     print(f"Planner Agent: Context retrieved ({len(context)} chars). Preview: {context[:200]}...")
     
     llm = get_llm(temperature=0)

@@ -7,6 +7,11 @@ class VectorStoreManager:
         self.client = chromadb.PersistentClient(path=persist_directory)
         self.collection = self.client.get_or_create_collection(name="codebase")
 
+    def clear_collection(self):
+        """Wipes the current collection for a fresh index."""
+        self.client.delete_collection(name="codebase")
+        self.collection = self.client.get_or_create_collection(name="codebase")
+
     def add_documents(self, ids: List[str], documents: List[str], metadatas: List[Dict[str, Any]] = None):
         if not documents:
             return

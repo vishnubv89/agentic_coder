@@ -62,6 +62,11 @@ async def set_workspace(req: WorkspaceConfig):
     if not os.path.exists(new_path):
         raise HTTPException(status_code=404, detail="Path does not exist.")
     config.PROJECT_ROOT = new_path
+    
+    # Re-index for RAG
+    from rag.indexer import index_codebase
+    index_codebase(config.PROJECT_ROOT)
+    
     return JSONResponse({"message": f"Workspace root changed to {config.PROJECT_ROOT}", "root": os.path.basename(config.PROJECT_ROOT)})
 
 @app.post("/api/files/create")
