@@ -19,12 +19,16 @@ function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [wsConnected, setWsConnected] = useState(false);
   const [llmProvider, setLlmProvider] = useState('gemini');
+  const [ollamaModel, setOllamaModel] = useState('llama3:8b');
 
   useEffect(() => {
     // Fetch initial config
     fetch('http://localhost:8000/api/config')
       .then(res => res.json())
-      .then(data => setLlmProvider(data.llm_provider))
+      .then(data => {
+        setLlmProvider(data.llm_provider);
+        setOllamaModel(data.ollama_model);
+      })
       .catch(err => console.error("Failed to fetch config", err));
 
     const connect = () => {
@@ -82,6 +86,24 @@ function App() {
     }
   };
 
+  const handleModelChange = async (e) => {
+    if (e.key === 'Enter') {
+      try {
+        const res = await fetch('http://localhost:8000/api/config/llm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider: 'ollama', model: ollamaModel })
+        });
+        if (res.ok) {
+          setMessages(prev => [...prev, { role: 'system', content: `Ollama model set to ${ollamaModel}` }]);
+          e.target.blur();
+        }
+      } catch (err) {
+        console.error("Failed to update model", err);
+      }
+    }
+  };
+
   const testResultLines = (state.test_results || '').split('\n');
 
   return (
@@ -99,7 +121,7 @@ function App() {
       {/* Center: Editor (takes most space) */}
       <div className="center-panel">
         <div className="panel-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1 }}>
             <span>EDITOR</span>
             <div className="llm-switch" onClick={toggleLLM}>
               <span className={`switch-label ${llmProvider === 'gemini' ? 'active' : ''}`}>ONLINE</span>
@@ -108,6 +130,17 @@ function App() {
               </div>
               <span className={`switch-label ${llmProvider === 'ollama' ? 'active' : ''}`}>LOCAL</span>
             </div>
+            {llmProvider === 'ollama' && (
+              <div className="model-input-container">
+                <input
+                  className="model-name-input"
+                  value={ollamaModel}
+                  onChange={(e) => setOllamaModel(e.target.value)}
+                  onKeyDown={handleModelChange}
+                  placeholder="model name..."
+                />
+              </div>
+            )}
           </div>
           <span className={`conn-badge ${wsConnected ? 'connected' : 'disconnected'}`}>
             {wsConnected ? '⬤ LIVE' : '⬤ OFFLINE'}

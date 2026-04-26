@@ -154,6 +154,25 @@ body, html {
   transform: translateX(14px);
 }
 
+.model-input-container {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+  padding: 0 8px;
+}
+
+.model-name-input {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  width: 100px;
+  outline: none;
+  padding: 2px 0;
+}
+
 .blink-dot {
   color: var(--success);
   animation: blink 1s infinite;

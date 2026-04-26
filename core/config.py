@@ -14,7 +14,7 @@ class Config:
         
         # Ollama
         self.OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-        self.OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")
+        self.OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3:8b")
         
         # LangChain Tracing
         self.LANGCHAIN_TRACING_V2 = os.getenv("LANGCHAIN_TRACING_V2", "false").lower() == "true"

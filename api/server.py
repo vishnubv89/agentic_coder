@@ -35,6 +35,7 @@ class FileCreateRequest(BaseModel):
 
 class LLMConfigRequest(BaseModel):
     provider: str # "gemini" or "ollama"
+    model: str = None # Optional model name
 
 @app.get("/api/config")
 async def get_config():
@@ -49,7 +50,12 @@ async def set_llm_provider(req: LLMConfigRequest):
     from core.config import config
     if req.provider not in ["gemini", "ollama"]:
         raise HTTPException(status_code=400, detail="Provider must be 'gemini' or 'ollama'")
+    
     config.LLM_PROVIDER = req.provider
+    if req.model:
+        config.OLLAMA_MODEL = req.model
+        print(f"Ollama model switched to: {config.OLLAMA_MODEL}")
+    
     print(f"LLM Provider switched to: {config.LLM_PROVIDER}")
     return JSONResponse({"message": f"LLM provider switched to {req.provider}"})
 
