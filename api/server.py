@@ -57,9 +57,8 @@ async def set_llm_provider(req: LLMConfigRequest):
     return JSONResponse({"message": f"LLM provider switched to {req.provider}"})
 
 @app.post("/api/config/workspace")
-async def set_workspace(config: WorkspaceConfig):
-    global config.PROJECT_ROOT
-    new_path = os.path.abspath(config.path)
+async def set_workspace(req: WorkspaceConfig):
+    new_path = os.path.abspath(req.path)
     if not os.path.exists(new_path):
         raise HTTPException(status_code=404, detail="Path does not exist.")
     config.PROJECT_ROOT = new_path
