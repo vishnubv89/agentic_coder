@@ -23,23 +23,52 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     ])
     
     llm = get_llm(temperature=0)
-    llm_with_tools = llm.bind_tools(AGENT_TOOLS)
+    is_ollama = config.LLM_PROVIDER == "ollama"
     
-    system_prompt = """You are a QA Tester Agent.
+    tool_prompt = ""
+    if is_ollama:
+        tool_prompt = """
+        To use the execution tool, wrap your request in XML tags:
+        <tool name="execute_python_code">{"code": "print('test')"}</tool>
+        """
+    
+    system_prompt = f"""You are a QA Tester Agent.
     Your ONLY job is to call the `execute_python_code` tool with the code provided to you.
-    DO NOT call list_directory or read_file. You already have the code below.
+    {tool_prompt}
     After execution, evaluate stdout/stderr. 
     If the code ran without errors, reply with 'PASSED: <summary of output>'.
     If there were errors, reply with 'FAILED: <reason>'."""
     
-    response = llm_with_tools.invoke([
-        SystemMessage(content=system_prompt),
-        HumanMessage(content=f"Please execute and test this code now:\n\n{code_summary}")
-    ])
+    # Initialize variables for response handling
+    response_content = ""
+    tool_calls = []
+    
+    if is_ollama:
+        response = llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=f"Please execute and test this code now using <tool> tags:\n\n{code_summary}")
+        ])
+        response_content = response.content
+        import re
+        matches = re.findall(r'<tool name="(.*?)">(.*?)</tool>', response_content, re.DOTALL)
+        for name, args_str in matches:
+            try:
+                tool_calls.append({"name": name, "args": json.loads(args_str)})
+            except:
+                print(f"Failed to parse tool args: {args_str}")
+    else:
+        llm_with_tools = llm.bind_tools(AGENT_TOOLS)
+        response = llm_with_tools.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=f"Please execute and test this code now:\n\n{code_summary}")
+        ])
+        response_content = response.content
+        if response.tool_calls:
+            tool_calls = response.tool_calls
     
     execution_logs = []
-    if response.tool_calls:
-        print(f"Tester Agent is using {len(response.tool_calls)} tools...")
+    if tool_calls:
+        print(f"Tester Agent is using {len(tool_calls)} tools...")
         from tools.execution_tools import execute_python_code
         from tools.file_tools import read_file, write_file, list_directory
         tool_map = {
@@ -48,9 +77,9 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
             "write_file": write_file,
             "list_directory": list_directory
         }
-        for tc in response.tool_calls:
+        for tc in tool_calls:
             print(f"  -> Tool call requested: {tc['name']}")
-            tool_fn = tool_map.get(tc["name"])
+            tool_fn = tool_map.get(tc['name'])
             if tool_fn:
                 try:
                     tool_result = tool_fn.invoke(tc["args"])
@@ -60,7 +89,7 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
                     execution_logs.append(f"> Execution error:\n{e}")
                     print(f"  -> Execution tool error: {e}")
     
-    content = response.content
+    content = response_content
     if isinstance(content, list):
         content = "".join([c.get("text", "") for c in content if isinstance(c, dict) and "text" in c])
     elif not isinstance(content, str):

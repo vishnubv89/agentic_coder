@@ -1,28 +1,32 @@
 import subprocess
+import os
 from langchain_core.tools import tool
+from core.config import config
 
 @tool
 def execute_python_code(code: str) -> str:
     """
-    Executes Python code in an isolated subprocess and returns the output.
-    Use this to run tests or verify scripts.
+    Executes Python code in the workspace and returns the output.
     """
     try:
-        # Write code to a temporary file
-        with open("temp_exec.py", "w") as f:
+        temp_file = os.path.join(config.PROJECT_ROOT, "temp_exec.py")
+        with open(temp_file, "w", encoding="utf-8") as f:
             f.write(code)
             
-        # Execute it
         result = subprocess.run(
-            ["python", "temp_exec.py"],
+            ["python", temp_file],
+            cwd=config.PROJECT_ROOT,
             capture_output=True,
             text=True,
-            timeout=10 # 10 second timeout
+            timeout=15
         )
         
         output = f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}\nEXIT CODE: {result.returncode}"
+        # Cleanup
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
         return output
     except subprocess.TimeoutExpired:
-        return "Execution failed: Script timed out after 10 seconds."
+        return "Execution failed: Script timed out after 15 seconds."
     except Exception as e:
         return f"Execution failed: {str(e)}"

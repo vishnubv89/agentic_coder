@@ -1,22 +1,36 @@
 import os
 from langchain_core.tools import tool
+from core.config import config
+
+def get_safe_path(rel_path: str) -> str:
+    # Ensure rel_path is indeed relative
+    if os.path.isabs(rel_path):
+        # If it's already in PROJECT_ROOT, keep it
+        if rel_path.startswith(config.PROJECT_ROOT):
+            return rel_path
+        # Otherwise, take just the basename or relative part
+        rel_path = os.path.basename(rel_path)
+    return os.path.normpath(os.path.join(config.PROJECT_ROOT, rel_path))
 
 @tool
 def read_file(file_path: str) -> str:
-    """Reads the contents of a file from the file system."""
+    """Reads the contents of a file from the workspace."""
+    safe_path = get_safe_path(file_path)
     try:
-        with open(file_path, "r") as f:
+        if not os.path.exists(safe_path):
+            return f"Error: File {file_path} not found at {safe_path}"
+        with open(safe_path, "r", encoding="utf-8") as f:
             return f.read()
     except Exception as e:
         return f"Error reading file {file_path}: {str(e)}"
 
 @tool
 def write_file(file_path: str, content: str) -> str:
-    """Writes content to a file. Overwrites the file if it exists."""
+    """Writes content to a file in the workspace."""
+    safe_path = get_safe_path(file_path)
     try:
-        # Create directories if they don't exist
-        os.makedirs(os.path.dirname(os.path.abspath(file_path)), exist_ok=True)
-        with open(file_path, "w") as f:
+        os.makedirs(os.path.dirname(safe_path), exist_ok=True)
+        with open(safe_path, "w", encoding="utf-8") as f:
             f.write(content)
         return f"Successfully wrote to {file_path}"
     except Exception as e:
@@ -24,8 +38,10 @@ def write_file(file_path: str, content: str) -> str:
 
 @tool
 def list_directory(directory_path: str = ".") -> str:
-    """Lists all files and directories in the given path."""
+    """Lists files and directories in the workspace."""
+    safe_path = get_safe_path(directory_path)
     try:
-        return "\n".join(os.listdir(directory_path))
+        items = os.listdir(safe_path)
+        return f"Contents of {directory_path}:\n" + "\n".join(items)
     except Exception as e:
         return f"Error listing directory {directory_path}: {str(e)}"

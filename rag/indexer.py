@@ -10,8 +10,13 @@ INDEXABLE_EXTENSIONS = {
     ".env.example",
 }
 
-def index_codebase(root_dir: str = "."):
-    """Walks the codebase and indexes all python files into Hybrid RAG."""
+from core.config import config
+
+def index_codebase(root_dir: str = None):
+    """Walks the codebase and indexes all useful files into Hybrid RAG."""
+    if root_dir is None:
+        root_dir = config.PROJECT_ROOT
+        
     print(f"Starting codebase indexing in {root_dir}...")
     
     # Files to ignore

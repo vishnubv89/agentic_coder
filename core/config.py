@@ -6,6 +6,9 @@ load_dotenv()
 
 class Config:
     def __init__(self):
+        # Workspace
+        self.PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
         # LLM Settings
         self.LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini") # "gemini" or "ollama"
         

@@ -8,7 +8,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, H
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from core.graph import build_graph
-
+from core.config import config
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -22,9 +22,6 @@ app.add_middleware(
 )
 
 graph = build_graph()
-
-# Project root state
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class WorkspaceConfig(BaseModel):
     path: str
@@ -61,17 +58,17 @@ async def set_llm_provider(req: LLMConfigRequest):
 
 @app.post("/api/config/workspace")
 async def set_workspace(config: WorkspaceConfig):
-    global PROJECT_ROOT
+    global config.PROJECT_ROOT
     new_path = os.path.abspath(config.path)
     if not os.path.exists(new_path):
         raise HTTPException(status_code=404, detail="Path does not exist.")
-    PROJECT_ROOT = new_path
-    return JSONResponse({"message": f"Workspace root changed to {PROJECT_ROOT}", "root": os.path.basename(PROJECT_ROOT)})
+    config.PROJECT_ROOT = new_path
+    return JSONResponse({"message": f"Workspace root changed to {config.PROJECT_ROOT}", "root": os.path.basename(config.PROJECT_ROOT)})
 
 @app.post("/api/files/create")
 async def create_file(req: FileCreateRequest):
-    safe_path = os.path.normpath(os.path.join(PROJECT_ROOT, req.path))
-    if not safe_path.startswith(PROJECT_ROOT):
+    safe_path = os.path.normpath(os.path.join(config.PROJECT_ROOT, req.path))
+    if not safe_path.startswith(config.PROJECT_ROOT):
         raise HTTPException(status_code=403, detail="Access denied.")
     
     try:
@@ -122,16 +119,16 @@ def build_file_tree(root_path: str, base_path: str) -> list:
 @app.get("/api/files")
 async def get_file_tree():
     """Return the full project file tree."""
-    tree = build_file_tree(PROJECT_ROOT, PROJECT_ROOT)
-    return JSONResponse({"tree": tree, "root": os.path.basename(PROJECT_ROOT)})
+    tree = build_file_tree(config.PROJECT_ROOT, config.PROJECT_ROOT)
+    return JSONResponse({"tree": tree, "root": os.path.basename(config.PROJECT_ROOT)})
 
 
 @app.get("/api/file")
 async def get_file_content(path: str):
     """Return the content of a specific file."""
     # Sanitize path to prevent directory traversal
-    safe_path = os.path.normpath(os.path.join(PROJECT_ROOT, path))
-    if not safe_path.startswith(PROJECT_ROOT):
+    safe_path = os.path.normpath(os.path.join(config.PROJECT_ROOT, path))
+    if not safe_path.startswith(config.PROJECT_ROOT):
         raise HTTPException(status_code=403, detail="Access denied.")
     
     if not os.path.isfile(safe_path):
@@ -155,13 +152,13 @@ async def upload_project(file: UploadFile = File(...)):
     if not file.filename.endswith(".zip"):
         raise HTTPException(status_code=400, detail="Only .zip files are supported.")
     
-    upload_dir = os.path.join(PROJECT_ROOT, "uploaded_project")
+    upload_dir = os.path.join(config.PROJECT_ROOT, "uploaded_project")
     if os.path.exists(upload_dir):
         shutil.rmtree(upload_dir)
     os.makedirs(upload_dir, exist_ok=True)
     
     # Save uploaded zip
-    tmp_zip = os.path.join(PROJECT_ROOT, "uploaded.zip")
+    tmp_zip = os.path.join(config.PROJECT_ROOT, "uploaded.zip")
     with open(tmp_zip, "wb") as f:
         content = await file.read()
         f.write(content)
