@@ -1,6 +1,15 @@
 import os
 from rag.retriever import hybrid_retriever
 
+# All file types that are useful to index for a full-stack project
+INDEXABLE_EXTENSIONS = {
+    ".py", ".js", ".jsx", ".ts", ".tsx",
+    ".html", ".css", ".scss",
+    ".json", ".yaml", ".yml", ".toml",
+    ".md", ".txt", ".sh",
+    ".env.example",
+}
+
 def index_codebase(root_dir: str = "."):
     """Walks the codebase and indexes all python files into Hybrid RAG."""
     print(f"Starting codebase indexing in {root_dir}...")
@@ -14,7 +23,8 @@ def index_codebase(root_dir: str = "."):
         dirs[:] = [d for d in dirs if d not in ignore_dirs]
         
         for file in files:
-            if file.endswith(".py"):
+            ext = os.path.splitext(file)[1].lower()
+            if ext in INDEXABLE_EXTENSIONS or file == ".env.example":
                 file_path = os.path.join(root, file)
                 try:
                     with open(file_path, "r", encoding="utf-8") as f:

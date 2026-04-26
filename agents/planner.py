@@ -4,25 +4,50 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from core.config import config
 from rag.retriever import hybrid_retriever
 import json
+import os
+
+def get_directory_tree(path, indent=""):
+    """Generates a text representation of the directory tree."""
+    tree = ""
+    ignore = {".git", "venv", "__pycache__", "chroma_db", "node_modules", ".gemini"}
+    try:
+        for item in sorted(os.listdir(path)):
+            if item in ignore or item.startswith('.'):
+                continue
+            full_path = os.path.join(path, item)
+            if os.path.isdir(full_path):
+                tree += f"{indent}📁 {item}/\n"
+                tree += get_directory_tree(full_path, indent + "  ")
+            else:
+                tree += f"{indent}📄 {item}\n"
+    except:
+        pass
+    return tree
 
 def planner_node(state: AgenticCoderState) -> AgenticCoderState:
     print("Planner Agent: Analyzing task and creating plan...")
     task = state.get("task_description", "")
     
-    # RAG: Retrieve context from codebase
-    print(f"Planner Agent: Retrieving codebase context for task: {task}...")
+    # RAG: Retrieve context and directory structure
+    print(f"Planner Agent: Retrieving codebase context and structure...")
     context = hybrid_retriever.retrieve(task)
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    dir_tree = get_directory_tree(project_root)
+    print(f"Planner Agent: Context retrieved ({len(context)} chars). Preview: {context[:200]}...")
     
     llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite-preview", google_api_key=config.GEMINI_API_KEY, temperature=0)
     
     system_prompt = f"""You are the Lead Technical Planner of an AI Agentic Coding System.
     Your job is to break down the user's coding request into a clear, step-by-step implementation plan.
     
-    --- CODEBASE CONTEXT ---
+    --- PROJECT DIRECTORY STRUCTURE ---
+    {dir_tree}
+    
+    --- RELEVANT CODE CONTEXT ---
     {context}
     --- END CONTEXT ---
 
-    Use the context above to ensure your plan aligns with existing code structures and dependencies.
+    Use the directory structure and code context above to ensure your plan aligns with existing architecture and dependencies.
     Return ONLY a JSON array of strings, where each string is a step in the plan.
     Example: ["1. Set up the Python project.", "2. Write the main logic in app.py", "3. Write tests in test_app.py"]"""
     
