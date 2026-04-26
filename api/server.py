@@ -3,6 +3,7 @@ import os
 import zipfile
 import shutil
 import tempfile
+import asyncio
 from pathlib import Path
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -215,7 +216,7 @@ async def websocket_endpoint(websocket: WebSocket):
             
             await websocket.send_json({"type": "status", "data": "planning"})
             
-            for event in graph.stream(initial_state, stream_mode="values"):
+            async for event in graph.astream(initial_state, stream_mode="values"):
                 status = event.get("status", "")
                 thought = event.get("thought", "Thinking...")
                 await websocket.send_json({
@@ -230,6 +231,8 @@ async def websocket_endpoint(websocket: WebSocket):
                         "thought": thought
                     }
                 })
+                # Yield control to allow websocket to flush
+                await asyncio.sleep(0.1)
                 
             await websocket.send_json({"type": "completed", "data": "Task finished."})
             

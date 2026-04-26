@@ -6,7 +6,7 @@ from core.llm import get_llm
 import json
 import re
 
-def tester_node(state: AgenticCoderState) -> AgenticCoderState:
+async def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     print("Tester Agent: Testing code artifacts...")
     
     code_artifacts = state.get("code_artifacts", {})
@@ -46,7 +46,7 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     tool_calls = []
     
     if is_ollama:
-        response = llm.invoke([
+        response = await llm.ainvoke([
             SystemMessage(content=system_prompt),
             HumanMessage(content=f"Please execute and test this code now using <tool name=\"execute_python_code\">{{\"code\": \"...\"}}</tool> tags:\n\n{code_summary}")
         ])

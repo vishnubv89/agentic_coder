@@ -24,7 +24,7 @@ def get_directory_tree(path, indent=""):
         pass
     return tree
 
-def planner_node(state: AgenticCoderState) -> AgenticCoderState:
+async def planner_node(state: AgenticCoderState) -> AgenticCoderState:
     print("Planner Agent: Analyzing task and creating plan...")
     task = state.get("task_description", "")
     
@@ -50,10 +50,12 @@ def planner_node(state: AgenticCoderState) -> AgenticCoderState:
     Return ONLY a JSON array of strings, where each string is a step in the plan.
     Example: ["1. Set up the Python project.", "2. Write the main logic in app.py", "3. Write tests in test_app.py"]"""
     
-    response = llm.invoke([
+    messages = [
         SystemMessage(content=system_prompt),
-        HumanMessage(content=f"Create a plan for this task: {task}")
-    ])
+        HumanMessage(content=f"Task: {task}")
+    ]
+    
+    response = await llm.ainvoke(messages)
     
     try:
         content = response.content

@@ -6,7 +6,7 @@ from core.llm import get_llm
 import json
 import re
 
-def coder_node(state: AgenticCoderState) -> AgenticCoderState:
+async def coder_node(state: AgenticCoderState) -> AgenticCoderState:
     print("Coder Agent: Writing code based on plan...")
     task = state.get("task_description", "")
     plan = state.get("plan", [])
@@ -43,7 +43,7 @@ def coder_node(state: AgenticCoderState) -> AgenticCoderState:
     tool_calls = []
     
     if is_ollama:
-        response = llm.invoke([
+        response = await llm.ainvoke([
             SystemMessage(content=system_prompt),
             HumanMessage(content="Please implement the code now. Use <tool name=\"tool_name\">{\"arg\": \"val\"}</tool> tags.")
         ])
@@ -64,7 +64,7 @@ def coder_node(state: AgenticCoderState) -> AgenticCoderState:
                 print(f"Failed to parse tool args for {name}: {e}. Args string: {args_str}")
     else:
         llm_with_tools = llm.bind_tools(AGENT_TOOLS)
-        response = llm_with_tools.invoke([
+        response = await llm_with_tools.ainvoke([
             SystemMessage(content=system_prompt),
             HumanMessage(content="Please implement the code now.")
         ])
