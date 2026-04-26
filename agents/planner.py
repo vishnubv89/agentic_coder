@@ -78,5 +78,6 @@ def planner_node(state: AgenticCoderState) -> AgenticCoderState:
     return {
         "plan": plan,
         "status": "coding",
-        "messages": [response]
+        "messages": [response],
+        "retry_count": 0
     }
