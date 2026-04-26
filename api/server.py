@@ -53,6 +53,7 @@ async def set_llm_provider(req: LLMConfigRequest):
         config.OLLAMA_MODEL = req.model
         print(f"Ollama model switched to: {config.OLLAMA_MODEL}")
     
+    config.save_state()
     print(f"LLM Provider switched to: {config.LLM_PROVIDER}")
     return JSONResponse({"message": f"LLM provider switched to {req.provider}"})
 
@@ -67,6 +68,7 @@ async def set_workspace(req: WorkspaceConfig):
     from rag.indexer import index_codebase
     index_codebase(config.PROJECT_ROOT)
     
+    config.save_state()
     return JSONResponse({"message": f"Workspace root changed to {config.PROJECT_ROOT}", "root": os.path.basename(config.PROJECT_ROOT)})
 
 @app.post("/api/files/create")
