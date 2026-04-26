@@ -4,7 +4,7 @@ import {
   Cpu, Zap, Target 
 } from 'lucide-react';
 
-const AgentMind = ({ status, plan }) => {
+const AgentMind = ({ status, plan, thought }) => {
   const steps = [
     { id: 'planning', label: 'PLANNING', icon: <Search size={16} />, color: '#00d2ff' },
     { id: 'coding', label: 'CODING', icon: <Code size={16} />, color: '#7f00ff' },
