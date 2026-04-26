@@ -455,32 +455,176 @@ body, html {
 .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ===================== AGENT MIND ===================== */
-.mind-container {
-  height: calc(100% - 35px);
-  width: 100%;
+/* Agent Mind Redesign V2 */
+.mind-section {
+  display: flex;
+  flex-direction: column;
+  height: 350px;
 }
 
-.react-flow__node {
-  background: var(--bg-panel);
-  color: white;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 11px;
-  width: 90px;
-  text-align: center;
+.mind-container-v2 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  background: var(--panel-bg);
+  gap: 20px;
+  overflow-y: auto;
 }
-.react-flow__node.active {
-  border-color: var(--accent);
-  box-shadow: 0 0 12px rgba(0,122,204,0.5);
-  animation: pulse 1.8s infinite;
+
+.mind-phases {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 5px;
 }
+
+.mind-phase-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  flex: 1;
+}
+
+.phase-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111;
+  color: #555;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.mind-phase-item.active .phase-icon {
+  color: #fff;
+  box-shadow: 0 0 15px rgba(255,255,255,0.1);
+}
+
+.mind-phase-item.done .phase-icon {
+  border-color: #39ff14 !important;
+}
+
+.phase-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #555;
+  letter-spacing: 1px;
+}
+
+.mind-phase-item.active .phase-label {
+  color: #fff;
+}
+
+.phase-line {
+  position: absolute;
+  top: 16px;
+  left: calc(50% + 20px);
+  width: calc(100% - 40px);
+  height: 2px;
+  background: #333;
+  z-index: 1;
+}
+
+.phase-line.done {
+  background: #39ff14;
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  opacity: 0.5;
+}
+
 @keyframes pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(0,122,204,0.5); }
-  70%  { box-shadow: 0 0 0 8px rgba(0,122,204,0); }
-  100% { box-shadow: 0 0 0 0 rgba(0,122,204,0); }
+  0% { transform: scale(1); opacity: 0.5; }
+  70% { transform: scale(1.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
 }
-.react-flow__edge-path { stroke: var(--text-dim) !important; }
+
+.mind-details {
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #333;
+}
+
+.mind-details-header, .stream-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.mind-plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mind-plan-step {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: #aaa;
+  line-height: 1.4;
+}
+
+.step-num {
+  color: var(--accent);
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  min-width: 15px;
+}
+
+.thought-stream {
+  margin-top: auto;
+}
+
+.stream-content {
+  background: #000;
+  padding: 10px;
+  border-radius: 4px;
+  border-left: 2px solid var(--accent);
+}
+
+.thought-item {
+  font-size: 11px;
+  color: #39ff14;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zap-icon {
+  animation: flicker 0.5s infinite alternate;
+}
+
+@keyframes flicker {
+  from { opacity: 1; }
+  to { opacity: 0.4; }
+}
+
+.mind-idle-text {
+  font-size: 11px;
+  color: #555;
+  font-style: italic;
+}
 
 /* ===================== TERMINAL ===================== */
 .test-results {

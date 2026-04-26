@@ -168,7 +168,7 @@ function App() {
 
         <div className="mind-section">
           <div className="panel-header">AGENT MIND</div>
-          <AgentMind status={state.status} />
+          <AgentMind status={state.status} plan={state.plan} />
         </div>
 
         <div className="terminal-section">
