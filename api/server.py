@@ -217,6 +217,7 @@ async def websocket_endpoint(websocket: WebSocket):
             
             for event in graph.stream(initial_state, stream_mode="values"):
                 status = event.get("status", "")
+                thought = event.get("thought", "Thinking...")
                 await websocket.send_json({
                     "type": "state_update",
                     "data": {
@@ -224,7 +225,9 @@ async def websocket_endpoint(websocket: WebSocket):
                         "plan": event.get("plan", []),
                         "code_artifacts": event.get("code_artifacts", {}),
                         "test_results": event.get("test_results", ""),
-                        "errors": event.get("errors", [])
+                        "errors": event.get("errors", []),
+                        "retry_count": event.get("retry_count", 0),
+                        "thought": thought
                     }
                 })
                 

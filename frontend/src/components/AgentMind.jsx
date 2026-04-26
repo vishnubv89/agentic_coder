@@ -36,7 +36,7 @@ const AgentMind = ({ status, plan }) => {
         {steps.map((step, i) => {
           const s = getStepStatus(step.id);
           return (
-            <div key={step.id} className={`mind-phase-item ${s}`}>
+            <div key={step.id} className={`mind-phase-item ${step.id} ${s}`}>
               <div className="phase-icon" style={{ borderColor: s !== 'pending' ? step.color : '#333' }}>
                 {s === 'done' ? <CheckCircle size={16} style={{ color: '#39ff14' }} /> : step.icon}
                 {s === 'active' && <div className="pulse-ring" style={{ backgroundColor: step.color }} />}
@@ -75,11 +75,13 @@ const AgentMind = ({ status, plan }) => {
         <div className="stream-content">
           <div className="thought-item">
              <Zap size={14} className="zap-icon" />
-             {status === 'planning' && "Reasoning about codebase architecture..."}
-             {status === 'coding' && "Generating code artifacts and wiring modules..."}
-             {status === 'testing' && "Verifying implementation in sandbox..."}
-             {status === 'completed' && "All systems green. Deployment ready."}
-             {status === 'idle' && "Standing by for instructions."}
+             {thought || (
+               status === 'planning' ? "Reasoning about codebase architecture..." :
+               status === 'coding' ? "Generating code artifacts and wiring modules..." :
+               status === 'testing' ? "Verifying implementation in sandbox..." :
+               status === 'completed' ? "All systems green. Deployment ready." :
+               "Standing by for instructions."
+             )}
           </div>
         </div>
       </div>

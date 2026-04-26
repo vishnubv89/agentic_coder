@@ -505,8 +505,13 @@ body, html {
 
 .mind-phase-item.active .phase-icon {
   color: #fff;
-  box-shadow: 0 0 15px rgba(255,255,255,0.1);
+  box-shadow: 0 0 20px rgba(255,255,255,0.2), 0 0 40px rgba(0, 210, 255, 0.2);
+  border-color: #fff;
 }
+
+.mind-phase-item.active.planning .phase-icon { box-shadow: 0 0 20px rgba(0, 210, 255, 0.4); }
+.mind-phase-item.active.coding .phase-icon { box-shadow: 0 0 20px rgba(127, 0, 255, 0.4); }
+.mind-phase-item.active.testing .phase-icon { box-shadow: 0 0 20px rgba(255, 0, 85, 0.4); }
 
 .mind-phase-item.done .phase-icon {
   border-color: #39ff14 !important;

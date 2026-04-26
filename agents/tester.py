@@ -136,5 +136,6 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
         "status": status,
         "messages": [response],
         "errors": errors,
-        "retry_count": retries
+        "retry_count": retries,
+        "thought": "Test suite passed. Implementation verified." if status == "completed" else f"Test failed (Retry {retries}/3). Re-analyzing code..."
     }

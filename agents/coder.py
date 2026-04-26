@@ -95,5 +95,6 @@ def coder_node(state: AgenticCoderState) -> AgenticCoderState:
         "status": "testing",
         "messages": [response],
         "code_artifacts": code_artifacts,
-        "retry_count": state.get("retry_count", 0)
+        "retry_count": state.get("retry_count", 0),
+        "thought": f"Implemented code for {len(code_artifacts)} files. Proceeding to verification."
     }

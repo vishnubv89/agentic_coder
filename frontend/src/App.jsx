@@ -13,7 +13,8 @@ function App() {
     plan: [],
     code_artifacts: {},
     test_results: '',
-    errors: []
+    errors: [],
+    thought: ''
   });
   const [messages, setMessages] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -168,7 +169,7 @@ function App() {
 
         <div className="mind-section">
           <div className="panel-header">AGENT MIND</div>
-          <AgentMind status={state.status} plan={state.plan} />
+          <AgentMind status={state.status} plan={state.plan} thought={state.thought} />
         </div>
 
         <div className="terminal-section">

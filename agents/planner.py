@@ -79,5 +79,6 @@ def planner_node(state: AgenticCoderState) -> AgenticCoderState:
         "plan": plan,
         "status": "coding",
         "messages": [response],
-        "retry_count": 0
+        "retry_count": 0,
+        "thought": f"Created a {len(plan)}-step execution plan. Transitioning to Coding phase."
     }
