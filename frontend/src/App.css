@@ -134,18 +134,63 @@ body, html {
   flex-shrink: 0;
 }
 
-.refresh-btn {
+.explorer-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.explorer-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.explorer-actions button {
   background: none;
   border: none;
   cursor: pointer;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
-  padding: 3px;
+  padding: 2px;
   border-radius: 3px;
-  transition: color 0.2s, background 0.2s;
 }
-.refresh-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+
+.explorer-actions button:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+}
+
+.path-input {
+  background: #3c3c3c;
+  border: 1px solid var(--accent);
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  width: 100%;
+  border-radius: 2px;
+  outline: none;
+}
+
+.inline-input-container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding-right: 10px;
+}
+
+.inline-input {
+  background: #3c3c3c;
+  border: 1px solid var(--accent);
+  color: white;
+  font-size: 12px;
+  padding: 2px 4px;
+  flex: 1;
+  border-radius: 2px;
+  outline: none;
+}
 
 .tree-scroll {
   flex: 1;

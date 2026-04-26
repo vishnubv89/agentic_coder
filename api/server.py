@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from core.graph import build_graph
 
+from pydantic import BaseModel
+
 app = FastAPI()
 
 app.add_middleware(
@@ -21,8 +23,41 @@ app.add_middleware(
 
 graph = build_graph()
 
-# Project root is the agentic_coder directory
+# Project root state
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+class WorkspaceConfig(BaseModel):
+    path: str
+
+class FileCreateRequest(BaseModel):
+    path: str
+    type: str # "file" or "directory"
+
+@app.post("/api/config/workspace")
+async def set_workspace(config: WorkspaceConfig):
+    global PROJECT_ROOT
+    new_path = os.path.abspath(config.path)
+    if not os.path.exists(new_path):
+        raise HTTPException(status_code=404, detail="Path does not exist.")
+    PROJECT_ROOT = new_path
+    return JSONResponse({"message": f"Workspace root changed to {PROJECT_ROOT}", "root": os.path.basename(PROJECT_ROOT)})
+
+@app.post("/api/files/create")
+async def create_file(req: FileCreateRequest):
+    safe_path = os.path.normpath(os.path.join(PROJECT_ROOT, req.path))
+    if not safe_path.startswith(PROJECT_ROOT):
+        raise HTTPException(status_code=403, detail="Access denied.")
+    
+    try:
+        if req.type == "directory":
+            os.makedirs(safe_path, exist_ok=True)
+        else:
+            os.makedirs(os.path.dirname(safe_path), exist_ok=True)
+            with open(safe_path, "w") as f:
+                f.write("")
+        return JSONResponse({"message": f"Successfully created {req.type} at {req.path}"})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 IGNORE_DIRS = {".git", "venv", "__pycache__", "chroma_db", "node_modules", ".gemini", ".ruff_cache"}
 IGNORE_FILES = {".DS_Store", "*.pyc", "link_lists.bin", "data_level0.bin", "header.bin", "length.bin"}
