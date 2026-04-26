@@ -3,6 +3,8 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from core.config import config
 from tools import AGENT_TOOLS
 from core.llm import get_llm
+import json
+import re
 
 def coder_node(state: AgenticCoderState) -> AgenticCoderState:
     print("Coder Agent: Writing code based on plan...")
@@ -95,6 +97,5 @@ def coder_node(state: AgenticCoderState) -> AgenticCoderState:
         "status": "testing",
         "messages": [response],
         "code_artifacts": code_artifacts,
-        "retry_count": state.get("retry_count", 0),
         "thought": f"Implemented code for {len(code_artifacts)} files. Proceeding to verification."
     }

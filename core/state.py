@@ -24,5 +24,5 @@ class AgenticCoderState(TypedDict):
     test_results: str
     errors: List[str]
     status: str
-    retry_count: int
+    retry_count: Annotated[int, operator.add]
     thought: str

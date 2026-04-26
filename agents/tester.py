@@ -3,6 +3,8 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from core.config import config
 from tools import AGENT_TOOLS
 from core.llm import get_llm
+import json
+import re
 
 def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     print("Tester Agent: Testing code artifacts...")
@@ -136,6 +138,6 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
         "status": status,
         "messages": [response],
         "errors": errors,
-        "retry_count": retries,
-        "thought": "Test suite passed. Implementation verified." if status == "completed" else f"Test failed (Retry {retries}/3). Re-analyzing code..."
+        "retry_count": 1 if status == "failed" else 0,
+        "thought": "Test suite passed. Implementation verified." if status == "completed" else "Test failed. Re-analyzing code..."
     }
