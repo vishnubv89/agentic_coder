@@ -46,16 +46,20 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     if is_ollama:
         response = llm.invoke([
             SystemMessage(content=system_prompt),
-            HumanMessage(content=f"Please execute and test this code now using <tool> tags:\n\n{code_summary}")
+            HumanMessage(content=f"Please execute and test this code now using <tool name=\"execute_python_code\">{{\"code\": \"...\"}}</tool> tags:\n\n{code_summary}")
         ])
         response_content = response.content
         import re
-        matches = re.findall(r'<tool name="(.*?)">(.*?)</tool>', response_content, re.DOTALL)
-        for name, args_str in matches:
+        matches = re.finditer(r'<tool\s+name=["\'](.*?)["\']\s*>(.*?)</tool>', response_content, re.DOTALL | re.IGNORECASE)
+        for match in matches:
+            name = match.group(1).strip()
+            args_str = match.group(2).strip()
             try:
+                if args_str.startswith("```"):
+                    args_str = re.sub(r'```[a-z]*\n(.*?)\n```', r'\1', args_str, flags=re.DOTALL)
                 tool_calls.append({"name": name, "args": json.loads(args_str)})
-            except:
-                print(f"Failed to parse tool args: {args_str}")
+            except Exception as e:
+                print(f"Failed to parse tool args for {name}: {e}")
     else:
         llm_with_tools = llm.bind_tools(AGENT_TOOLS)
         response = llm_with_tools.invoke([
@@ -123,9 +127,14 @@ def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     if execution_logs:
         final_results = "\n\n".join(execution_logs) + ("\n\nAgent Conclusion:\n" + content if content.strip() else "")
 
+    retries = state.get("retry_count", 0)
+    if status == "failed":
+        retries += 1
+
     return {
         "test_results": final_results,
         "status": status,
         "messages": [response],
-        "errors": errors
+        "errors": errors,
+        "retry_count": retries
     }

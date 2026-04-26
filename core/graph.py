@@ -6,8 +6,16 @@ from agents.tester import tester_node
 
 def route_tester_output(state: AgenticCoderState):
     status = state.get("status")
-    if status == "failed":
+    retries = state.get("retry_count", 0)
+    
+    if status == "failed" and retries < 3:
+        print(f"Graph: Test failed, retrying (Attempt {retries + 1}/3)...")
         return "coder"
+    
+    if retries >= 3:
+        print("Graph: Max retries reached. Stopping.")
+        return END
+        
     return END
 
 def build_graph():

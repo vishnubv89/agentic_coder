@@ -43,17 +43,23 @@ def coder_node(state: AgenticCoderState) -> AgenticCoderState:
     if is_ollama:
         response = llm.invoke([
             SystemMessage(content=system_prompt),
-            HumanMessage(content="Please implement the code now. Use <tool> tags for file operations.")
+            HumanMessage(content="Please implement the code now. Use <tool name=\"tool_name\">{\"arg\": \"val\"}</tool> tags.")
         ])
         response_content = response.content
-        # Manual parsing of <tool name="name">args</tool>
+        # Robust manual parsing
         import re
-        matches = re.findall(r'<tool name="(.*?)">(.*?)</tool>', response_content, re.DOTALL)
-        for name, args_str in matches:
+        # Match <tool name="...">content</tool>
+        matches = re.finditer(r'<tool\s+name=["\'](.*?)["\']\s*>(.*?)</tool>', response_content, re.DOTALL | re.IGNORECASE)
+        for match in matches:
+            name = match.group(1).strip()
+            args_str = match.group(2).strip()
             try:
+                # Clean up potential markdown code blocks inside XML
+                if args_str.startswith("```"):
+                    args_str = re.sub(r'```[a-z]*\n(.*?)\n```', r'\1', args_str, flags=re.DOTALL)
                 tool_calls.append({"name": name, "args": json.loads(args_str)})
-            except:
-                print(f"Failed to parse tool args: {args_str}")
+            except Exception as e:
+                print(f"Failed to parse tool args for {name}: {e}. Args string: {args_str}")
     else:
         llm_with_tools = llm.bind_tools(AGENT_TOOLS)
         response = llm_with_tools.invoke([

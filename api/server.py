@@ -202,7 +202,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 "code_artifacts": {},
                 "test_results": "",
                 "errors": [],
-                "status": "planning"
+                "status": "planning",
+                "retry_count": 0
             }
             
             await websocket.send_json({"type": "status", "data": "planning"})
