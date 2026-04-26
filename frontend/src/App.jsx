@@ -18,8 +18,15 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [wsConnected, setWsConnected] = useState(false);
+  const [llmProvider, setLlmProvider] = useState('gemini');
 
   useEffect(() => {
+    // Fetch initial config
+    fetch('http://localhost:8000/api/config')
+      .then(res => res.json())
+      .then(data => setLlmProvider(data.llm_provider))
+      .catch(err => console.error("Failed to fetch config", err));
+
     const connect = () => {
       const ws = new WebSocket('ws://localhost:8000/ws/chat');
       ws.onopen = () => { setSocket(ws); setWsConnected(true); };
@@ -58,6 +65,23 @@ function App() {
     setMessages(prev => [...prev, { role: 'system', content: `📁 Project uploaded: ${data.message}` }]);
   };
 
+  const toggleLLM = async () => {
+    const nextProvider = llmProvider === 'gemini' ? 'ollama' : 'gemini';
+    try {
+      const res = await fetch('http://localhost:8000/api/config/llm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: nextProvider })
+      });
+      if (res.ok) {
+        setLlmProvider(nextProvider);
+        setMessages(prev => [...prev, { role: 'system', content: `LLM switched to ${nextProvider === 'gemini' ? 'Online (Gemini)' : 'Local (Ollama)'}` }]);
+      }
+    } catch (err) {
+      console.error("Failed to toggle LLM", err);
+    }
+  };
+
   const testResultLines = (state.test_results || '').split('\n');
 
   return (
@@ -75,7 +99,16 @@ function App() {
       {/* Center: Editor (takes most space) */}
       <div className="center-panel">
         <div className="panel-header">
-          <span>EDITOR</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <span>EDITOR</span>
+            <div className="llm-switch" onClick={toggleLLM}>
+              <span className={`switch-label ${llmProvider === 'gemini' ? 'active' : ''}`}>ONLINE</span>
+              <div className={`switch-track ${llmProvider === 'ollama' ? 'local' : ''}`}>
+                <div className="switch-thumb" />
+              </div>
+              <span className={`switch-label ${llmProvider === 'ollama' ? 'active' : ''}`}>LOCAL</span>
+            </div>
+          </div>
           <span className={`conn-badge ${wsConnected ? 'connected' : 'disconnected'}`}>
             {wsConnected ? '⬤ LIVE' : '⬤ OFFLINE'}
           </span>

@@ -104,6 +104,56 @@ body, html {
 .conn-badge.connected    { color: var(--success); }
 .conn-badge.disconnected { color: var(--error); }
 
+.llm-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px;
+  border-radius: 12px;
+  user-select: none;
+}
+
+.switch-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-dim);
+  transition: color 0.2s;
+}
+
+.switch-label.active {
+  color: var(--text-primary);
+}
+
+.switch-track {
+  width: 28px;
+  height: 14px;
+  background: #3c3c3c;
+  border-radius: 7px;
+  position: relative;
+  transition: background 0.3s;
+}
+
+.switch-track.local {
+  background: var(--accent);
+}
+
+.switch-thumb {
+  width: 10px;
+  height: 10px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s;
+}
+
+.switch-track.local .switch-thumb {
+  transform: translateX(14px);
+}
+
 .blink-dot {
   color: var(--success);
   animation: blink 1s infinite;

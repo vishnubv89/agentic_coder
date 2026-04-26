@@ -33,6 +33,26 @@ class FileCreateRequest(BaseModel):
     path: str
     type: str # "file" or "directory"
 
+class LLMConfigRequest(BaseModel):
+    provider: str # "gemini" or "ollama"
+
+@app.get("/api/config")
+async def get_config():
+    from core.config import config
+    return JSONResponse({
+        "llm_provider": config.LLM_PROVIDER,
+        "ollama_model": config.OLLAMA_MODEL
+    })
+
+@app.post("/api/config/llm")
+async def set_llm_provider(req: LLMConfigRequest):
+    from core.config import config
+    if req.provider not in ["gemini", "ollama"]:
+        raise HTTPException(status_code=400, detail="Provider must be 'gemini' or 'ollama'")
+    config.LLM_PROVIDER = req.provider
+    print(f"LLM Provider switched to: {config.LLM_PROVIDER}")
+    return JSONResponse({"message": f"LLM provider switched to {req.provider}"})
+
 @app.post("/api/config/workspace")
 async def set_workspace(config: WorkspaceConfig):
     global PROJECT_ROOT
