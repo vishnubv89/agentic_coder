@@ -1,8 +1,8 @@
 from core.state import AgenticCoderState
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from core.config import config
 from tools import AGENT_TOOLS
+from core.llm import get_llm
 
 def coder_node(state: AgenticCoderState) -> AgenticCoderState:
     print("Coder Agent: Writing code based on plan...")
@@ -10,7 +10,7 @@ def coder_node(state: AgenticCoderState) -> AgenticCoderState:
     plan = state.get("plan", [])
     errors = state.get("errors", [])
     
-    llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite-preview", google_api_key=config.GEMINI_API_KEY, temperature=0.2)
+    llm = get_llm(temperature=0.2)
     llm_with_tools = llm.bind_tools(AGENT_TOOLS)
     
     system_prompt = f"""You are an Expert Coder Agent.

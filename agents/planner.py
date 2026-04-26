@@ -1,8 +1,8 @@
 from core.state import AgenticCoderState
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from core.config import config
 from rag.retriever import hybrid_retriever
+from core.llm import get_llm
 import json
 import os
 
@@ -35,7 +35,7 @@ def planner_node(state: AgenticCoderState) -> AgenticCoderState:
     dir_tree = get_directory_tree(project_root)
     print(f"Planner Agent: Context retrieved ({len(context)} chars). Preview: {context[:200]}...")
     
-    llm = ChatGoogleGenerativeAI(model="gemini-3.1-flash-lite-preview", google_api_key=config.GEMINI_API_KEY, temperature=0)
+    llm = get_llm(temperature=0)
     
     system_prompt = f"""You are the Lead Technical Planner of an AI Agentic Coding System.
     Your job is to break down the user's coding request into a clear, step-by-step implementation plan.
