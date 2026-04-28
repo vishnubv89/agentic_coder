@@ -47,5 +47,22 @@ def index_codebase(root_dir: str = None):
                     
     print(f"Indexing complete. Indexed {indexed_count} files.")
 
+def index_single_file(file_path: str, root_dir: str = None):
+    """Indexes or re-indexes a single file into the RAG."""
+    if root_dir is None:
+        root_dir = config.PROJECT_ROOT
+        
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext in INDEXABLE_EXTENSIONS or os.path.basename(file_path) == ".env.example":
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            
+            rel_path = os.path.relpath(file_path, root_dir)
+            hybrid_retriever.index_file(rel_path, content)
+            print(f"RAG Updated: Indexed {rel_path}")
+        except Exception as e:
+            print(f"Error re-indexing {file_path}: {e}")
+
 if __name__ == "__main__":
     index_codebase()

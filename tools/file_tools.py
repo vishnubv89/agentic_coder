@@ -32,6 +32,14 @@ def write_file(file_path: str, content: str) -> str:
         os.makedirs(os.path.dirname(safe_path), exist_ok=True)
         with open(safe_path, "w", encoding="utf-8") as f:
             f.write(content)
+        
+        # Real-time indexing for RAG memory
+        try:
+            from rag.indexer import index_single_file
+            index_single_file(safe_path)
+        except Exception as re_idx_err:
+            print(f"Non-critical: Failed to re-index {file_path}: {re_idx_err}")
+            
         return f"Successfully wrote to {file_path}"
     except Exception as e:
         return f"Error writing to file {file_path}: {str(e)}"

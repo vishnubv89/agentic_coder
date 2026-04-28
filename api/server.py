@@ -193,6 +193,14 @@ async def upload_project(file: UploadFile = File(...)):
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     
+    # Initialize persistent state for this session
+    session_state = {
+        "messages": [],
+        "code_artifacts": {},
+        "retry_count": 0,
+        "errors": []
+    }
+    
     try:
         while True:
             data = await websocket.receive_text()
@@ -201,37 +209,44 @@ async def websocket_endpoint(websocket: WebSocket):
             
             if not task:
                 continue
-                
-            initial_state = {
-                "messages": [("user", task)],
-                "task_description": task,
-                "plan": [],
-                "current_step": 0,
-                "code_artifacts": {},
-                "test_results": "",
-                "errors": [],
-                "status": "planning",
-                "retry_count": 0
-            }
+            
+            # Update session state with new task
+            session_state["messages"].append(("user", task))
+            session_state["task_description"] = task
+            session_state["status"] = "planning"
+            session_state["plan"] = []
+            session_state["current_step"] = 0
+            # Note: We keep code_artifacts from previous turns
             
             await websocket.send_json({"type": "status", "data": "planning"})
             
-            async for event in graph.astream(initial_state, stream_mode="values"):
-                status = event.get("status", "")
-                thought = event.get("thought", "Thinking...")
+            # Use a temporary state for the current run to allow the stream to work correctly
+            # but feed in the session history
+            async for event in graph.astream(session_state, stream_mode="values"):
+                # Update our session state with the latest from the graph
+                session_state.update({
+                    "status": event.get("status", "planning"),
+                    "plan": event.get("plan", []),
+                    "code_artifacts": event.get("code_artifacts", {}),
+                    "test_results": event.get("test_results", ""),
+                    "errors": event.get("errors", []),
+                    "retry_count": event.get("retry_count", 0),
+                    "thought": event.get("thought", ""),
+                    "messages": event.get("messages", session_state["messages"])
+                })
+                
                 await websocket.send_json({
                     "type": "state_update",
                     "data": {
-                        "status": status,
-                        "plan": event.get("plan", []),
-                        "code_artifacts": event.get("code_artifacts", {}),
-                        "test_results": event.get("test_results", ""),
-                        "errors": event.get("errors", []),
-                        "retry_count": event.get("retry_count", 0),
-                        "thought": thought
+                        "status": session_state["status"],
+                        "plan": session_state["plan"],
+                        "code_artifacts": session_state["code_artifacts"],
+                        "test_results": session_state["test_results"],
+                        "errors": session_state["errors"],
+                        "retry_count": session_state["retry_count"],
+                        "thought": session_state["thought"]
                     }
                 })
-                # Yield control to allow websocket to flush
                 await asyncio.sleep(0.1)
                 
             await websocket.send_json({"type": "completed", "data": "Task finished."})
