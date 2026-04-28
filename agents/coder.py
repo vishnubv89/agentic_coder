@@ -20,12 +20,35 @@ async def coder_node(state: AgenticCoderState) -> AgenticCoderState:
         tool_prompt = """
         To use a tool, wrap your request in XML tags like this:
         <tool name="write_file">{"file_path": "path/to/file.py", "content": "print('hello')"}</tool>
-        <tool name="read_file">{"file_path": "path/to/existing_file.py"}</tool>
         
+        CRITICAL: Inside the JSON, you MUST escape newlines as \\n and double quotes as \\".
+        Do NOT use triple quotes (\"\"\") inside the JSON.
         Available tools: write_file, read_file
-        IMPORTANT: Before creating or modifying files, ALWAYS use 'read_file' to understand the existing code context if it's relevant.
         """
-    
+
+    def clean_json(s):
+        # Remove potential markdown code blocks
+        s = s.strip()
+        if s.startswith("```json"): s = s[7:-3]
+        elif s.startswith("```"): s = s[3:-3]
+        s = s.strip()
+        
+        # Handle the common mistake of triple quotes inside JSON
+        s = s.replace('"""', '"') 
+        
+        # Try to fix unescaped newlines inside JSON strings
+        # This is tricky, but we can look for newlines that are NOT preceded by a backslash
+        # and are inside what looks like a value string
+        import re
+        # Find the content of "content": "..." values and fix newlines
+        def fix_newlines(match):
+            val = match.group(2)
+            fixed = val.replace('\n', '\\n').replace('\r', '')
+            return f'"{match.group(1)}": "{fixed}"'
+        
+        s = re.sub(r'"(content|code)":\s*"(.*?)"', fix_newlines, s, flags=re.DOTALL)
+        return s
+
     system_prompt = f"""You are an Expert Coder Agent.
     Your goal is to implement the given task based on the provided plan.
     Task: {task}
@@ -56,10 +79,8 @@ async def coder_node(state: AgenticCoderState) -> AgenticCoderState:
             name = match.group(1).strip()
             args_str = match.group(2).strip()
             try:
-                # Clean up potential markdown code blocks inside XML
-                if args_str.startswith("```"):
-                    args_str = re.sub(r'```[a-z]*\n(.*?)\n```', r'\1', args_str, flags=re.DOTALL)
-                tool_calls.append({"name": name, "args": json.loads(args_str)})
+                cleaned_args = clean_json(args_str)
+                tool_calls.append({"name": name, "args": json.loads(cleaned_args)})
             except Exception as e:
                 print(f"Failed to parse tool args for {name}: {e}. Args string: {args_str}")
     else:

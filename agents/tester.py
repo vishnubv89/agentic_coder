@@ -31,15 +31,44 @@ async def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     if is_ollama:
         tool_prompt = """
         To use the execution tool, wrap your request in XML tags:
-        <tool name="execute_python_code">{"code": "print('test')"}</tool>
+        <tool name="execute_python_code">{"code": "from filename import function; print(function())"}</tool>
+        
+        CRITICAL: Inside the JSON, you MUST escape newlines as \\n and double quotes as \\".
+        Do NOT use triple quotes (\"\"\") inside the JSON.
         """
-    
+
+    def clean_json(s):
+        # Remove potential markdown code blocks
+        s = s.strip()
+        if s.startswith("```json"): s = s[7:-3]
+        elif s.startswith("```"): s = s[3:-3]
+        s = s.strip()
+        
+        # Handle the common mistake of triple quotes inside JSON
+        s = s.replace('"""', '"') 
+        
+        # Try to fix unescaped newlines inside JSON strings
+        import re
+        # Find the content of "code": "..." values and fix newlines
+        def fix_newlines(match):
+            val = match.group(2)
+            fixed = val.replace('\n', '\\n').replace('\r', '')
+            return f'"{match.group(1)}": "{fixed}"'
+        
+        s = re.sub(r'"(code)":\s*"(.*?)"', fix_newlines, s, flags=re.DOTALL)
+        return s
+
     system_prompt = f"""You are a QA Tester Agent.
-    Your ONLY job is to call the `execute_python_code` tool with the code provided to you.
+    Your task is to verify the code artifacts below.
+    Code to test:
+    {code_summary}
+
+    To test, use the `execute_python_code` tool. 
+    IMPORTANT: Since the code is already written to files, you should IMPORT the functions from their respective modules to test them.
+    Example: If a file `logic.py` has `def add(a, b)`, your test code should be: `from logic import add; print(add(1, 2))`
+    
     {tool_prompt}
-    After execution, evaluate stdout/stderr. 
-    If the code ran without errors, reply with 'PASSED: <summary of output>'.
-    If there were errors, reply with 'FAILED: <reason>'."""
+    Evaluate stdout/stderr. If exit code is 0 and output is correct, reply 'PASSED'. Otherwise 'FAILED' with reason."""
     
     # Initialize variables for response handling
     response_content = ""
@@ -48,20 +77,21 @@ async def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     if is_ollama:
         response = await llm.ainvoke([
             SystemMessage(content=system_prompt),
-            HumanMessage(content=f"Please execute and test this code now using <tool name=\"execute_python_code\">{{\"code\": \"...\"}}</tool> tags:\n\n{code_summary}")
+            HumanMessage(content=f"Please execute and test this code now using <tool name=\"execute_python_code\">{{\"code\": \"...\"}}</tool> tags.")
         ])
         response_content = response.content
+        # Robust manual parsing
         import re
+        # Match <tool name="...">content</tool>
         matches = re.finditer(r'<tool\s+name=["\'](.*?)["\']\s*>(.*?)</tool>', response_content, re.DOTALL | re.IGNORECASE)
         for match in matches:
             name = match.group(1).strip()
             args_str = match.group(2).strip()
             try:
-                if args_str.startswith("```"):
-                    args_str = re.sub(r'```[a-z]*\n(.*?)\n```', r'\1', args_str, flags=re.DOTALL)
-                tool_calls.append({"name": name, "args": json.loads(args_str)})
+                cleaned_args = clean_json(args_str)
+                tool_calls.append({"name": name, "args": json.loads(cleaned_args)})
             except Exception as e:
-                print(f"Failed to parse tool args for {name}: {e}")
+                print(f"Failed to parse tool args for {name}: {e}. Args: {args_str}")
     else:
         llm_with_tools = llm.bind_tools(AGENT_TOOLS)
         response = llm_with_tools.invoke([

@@ -64,17 +64,31 @@ async def planner_node(state: AgenticCoderState) -> AgenticCoderState:
         elif not isinstance(content, str):
             content = str(content)
             
-        content = content.strip()
-        if content.startswith("```json"):
-            content = content[7:-3]
-        elif content.startswith("```"):
-            content = content[3:-3]
-            
-        plan = json.loads(content.strip())
+        # Robust extraction: Find the first [ and last ]
+        import re
+        match = re.search(r'(\[.*\])', content, re.DOTALL)
+        if match:
+            json_str = match.group(1)
+            # Clean up unescaped newlines which cause JSON errors
+            # Only replace newlines that are NOT part of a string (this is hard, 
+            # but usually LLMs put them everywhere)
+            # Simple approach: Replace literal newlines with \n if they are between quotes
+            # or just clean up the whole thing for common mistakes
+            try:
+                plan = json.loads(json_str)
+            except json.JSONDecodeError:
+                # If first attempt fails, try a more aggressive cleanup
+                cleaned_json = json_str.replace('\n', '\\n').replace('\r', '')
+                # Fix cases where it replaced needed newlines
+                cleaned_json = cleaned_json.replace('\\n{', '{').replace('\\n}', '}').replace('[\\n', '[').replace('\\n]', ']').replace(',\\n', ',')
+                plan = json.loads(cleaned_json)
+        else:
+            raise ValueError("No JSON array found in response")
+
         if not isinstance(plan, list):
             plan = [str(plan)]
     except Exception as e:
-        print(f"Failed to parse plan JSON. Raw output: {response.content}")
+        print(f"Failed to parse plan JSON: {e}. Raw output: {response.content}")
         plan = ["1. Implement the requested feature.", "2. Test the implementation."]
         
     return {
