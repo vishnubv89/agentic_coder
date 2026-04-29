@@ -34,31 +34,31 @@ async def planner_node(state: AgenticCoderState) -> AgenticCoderState:
     dir_tree = get_directory_tree(config.PROJECT_ROOT)
     print(f"Planner Agent: Context retrieved ({len(context)} chars). Preview: {context[:200]}...")
     
-    # Working Memory: Code written in the current session
+    # Session History: Files modified in this session
     code_artifacts = state.get("code_artifacts", {})
-    working_memory = "\n".join([f"### File: {f}\n{c[:500]}..." for f, c in code_artifacts.items()]) if code_artifacts else "None yet."
+    history = "\n".join([f"- {f}" for f in code_artifacts.keys()]) if code_artifacts else "None"
     
     llm = get_llm(temperature=0)
     
-    system_prompt = f"""You are the Lead Technical Planner of an AI Agentic Coding System.
-    Your job is to break down the user's coding request into a clear, step-by-step implementation plan.
-    
-    --- WORKING MEMORY (Code written in this session) ---
-    {working_memory}
-    
-    --- PROJECT DIRECTORY STRUCTURE ---
+    system_prompt = f"""You are an Expert Technical Planner. 
+    Your task is to create a logical, step-by-step implementation plan for the user's request.
+
+    --- CURRENT CODEBASE CONTEXT ---
+    Directory Structure:
     {dir_tree}
-    
-    --- RELEVANT CODE CONTEXT (RAG) ---
+
+    Files modified in current session:
+    {history}
+
+    Relevant Code Snippets:
     {context}
     --- END CONTEXT ---
 
-    CRITICAL RULES:
-    1. PRIORITIZE the 'WORKING MEMORY' code. If the user asks to modify something you just wrote, use the memory, NOT the RAG context which might be outdated.
-    2. IGNORE irrelevant boilerplate or unrelated 'CPU/Memory monitoring' code if it doesn't apply to the task.
-    3. Use the directory structure and code context above to ensure your plan aligns with existing architecture.
-    Return ONLY a JSON array of strings, where each string is a step in the plan.
-    Example: ["1. Set up the Python project.", "2. Write the main logic in app.py", "3. Write tests in test_app.py"]"""
+    Instructions:
+    1. Analyze the request and the existing codebase.
+    2. Create a plan that is modular, simple, and follows best practices.
+    3. Return ONLY a JSON array of strings representing the steps.
+    Example: ["1. Create utility.py", "2. Update main.py to use utility"]"""
     
     messages = [
         SystemMessage(content=system_prompt),
