@@ -1,5 +1,5 @@
 {
-    "PROJECT_ROOT": "/Users/vishnubv/temp/test",
+    "PROJECT_ROOT": "/Users/vishnubv/Vishnu/AnitGravity/agentic_coder",
     "LLM_PROVIDER": "ollama",
     "OLLAMA_MODEL": "llama3:8b"
 }
