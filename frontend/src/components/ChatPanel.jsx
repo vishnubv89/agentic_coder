@@ -16,7 +16,7 @@ const ChatPanel = ({ onSend, messages, status, plan }) => {
       <div className="chat-history">
         {messages.length === 0 && (
           <div className="chat-message system">
-            Welcome to AgenticCoder. What would you like to build?
+            Welcome to **A-IDE**. What would you like to build?
           </div>
         )}
         {messages.map((msg, idx) => (

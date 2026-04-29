@@ -1,7 +1,7 @@
-# AgenticCoder: The Product Bible
+# A-IDE: The Agentic IDE Product Bible
 
 ## 1. Executive Summary
-**AgenticCoder** is an advanced, end-to-end multi-agent AI coding system. Designed as a portfolio-grade application, it moves beyond simple CLI-based LLM wrappers by implementing a state-machine orchestrator, isolated tool-calling execution environments, hybrid knowledge retrieval, and a premium real-time web IDE.
+**A-IDE (Agentic IDE)** is an advanced, end-to-end multi-agent AI coding system. Designed as a portfolio-grade application, it moves beyond simple CLI-based LLM wrappers by implementing a state-machine orchestrator, isolated tool-calling execution environments, hybrid knowledge retrieval, and a premium real-time web IDE.
 
 The system is capable of breaking down complex coding tasks, executing code generation autonomously, and critically, verifying its own work through a specialized Tester Agent before presenting the final artifact.
 

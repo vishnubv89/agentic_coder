@@ -109,8 +109,23 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Left Panel: File Explorer + Upload */}
-      <div className="left-panel">
+      {/* App Header */}
+      <header className="app-header">
+        <div className="logo-container">
+          <Zap size={18} className="logo-icon" />
+          <span className="logo-text">A-IDE <span className="logo-subtext">(Agentic IDE)</span></span>
+        </div>
+        <div className="header-meta">
+          <div className="conn-badge">
+             <div className="status-dot" />
+             CONNECTED
+          </div>
+        </div>
+      </header>
+
+      <div className="main-layout">
+        {/* Left Panel: File Explorer + Upload */}
+        <div className="left-panel">
         <UploadZone onUploadSuccess={handleUploadSuccess} />
         <FileExplorer
           onSelectFile={handleSelectFile}

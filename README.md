@@ -1,10 +1,10 @@
-# AgenticCoder 🤖💻
+# A-IDE (Agentic IDE) 🤖💻
 
 [![Built with LangGraph](https://img.shields.io/badge/LangGraph-State_Machine-blue)](https://python.langchain.com/docs/langgraph/)
 [![Powered by Gemini](https://img.shields.io/badge/Model-Gemini_3.1_Flash_Lite-orange)](https://deepmind.google/technologies/gemini/)
 [![Frontend UI](https://img.shields.io/badge/UI-React_%2B_Vite-61DAFB?logo=react)](https://react.dev)
 
-An advanced, end-to-end multi-agent AI coding system designed to autonomously plan, write, and test software. AgenticCoder replaces standard linear prompting with a cyclic state-machine orchestrator, ensuring code is verified in an execution sandbox before it is finalized.
+An advanced, end-to-end multi-agent AI coding system designed to autonomously plan, write, and test software. **A-IDE** replaces standard linear prompting with a cyclic state-machine orchestrator, ensuring code is verified in an execution sandbox before it is finalized.
 
 📖 **For a deep dive into the architecture, tools, and technical decisions, please read the [PRODUCT BIBLE](PRODUCT_BIBLE.md).**
 

@@ -31,8 +31,54 @@ body, html {
 /* ===================== LAYOUT ===================== */
 .app-container {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100vw;
+  overflow: hidden;
+}
+
+/* ===================== HEADER ===================== */
+.app-header {
+  height: 48px;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  color: #7f00ff;
+  filter: drop-shadow(0 0 8px rgba(127, 0, 255, 0.4));
+}
+
+.logo-text {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+}
+
+.logo-subtext {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin-left: 5px;
+}
+
+.main-layout {
+  display: flex;
+  flex: 1;
   overflow: hidden;
 }
 
