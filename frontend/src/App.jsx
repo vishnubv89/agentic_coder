@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Zap } from 'lucide-react';
 import './App.css';
 import ChatPanel from './components/ChatPanel';
 import CodeEditor from './components/Editor';
