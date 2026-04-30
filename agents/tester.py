@@ -30,8 +30,9 @@ async def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     tool_prompt = ""
     if is_ollama:
         tool_prompt = """
-        To use the execution tool, wrap your request in XML tags:
-        <tool name="execute_python_code">{"code": "from filename import function; print(function())"}</tool>
+        Available tools:
+        1. <tool name="execute_python_code">{"code": "from filename import function; print(function())"}</tool>
+        2. <tool name="compile_and_run_cpp">{"code": "#include <iostream>\\n..."}</tool>
         
         CRITICAL: Inside the JSON, you MUST escape newlines as \\n and double quotes as \\".
         Do NOT use triple quotes (\"\"\") inside the JSON.
@@ -63,9 +64,9 @@ async def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     Code to test:
     {code_summary}
 
-    To test, use the `execute_python_code` tool. 
-    IMPORTANT: Since the code is already written to files, you should IMPORT the functions from their respective modules to test them.
-    Example: If a file `logic.py` has `def add(a, b)`, your test code should be: `from logic import add; print(add(1, 2))`
+    To test, use the appropriate tool:
+    - For Python: use `execute_python_code`. IMPORT the functions from their modules.
+    - For C++: use `compile_and_run_cpp`. Provide the full test code including a `main()` that tests the relevant parts.
     
     {tool_prompt}
     Evaluate stdout/stderr. If exit code is 0 and output is correct, reply 'PASSED'. Otherwise 'FAILED' with reason."""
@@ -73,11 +74,12 @@ async def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     # Initialize variables for response handling
     response_content = ""
     tool_calls = []
+    execution_logs = []
     
     if is_ollama:
         response = await llm.ainvoke([
             SystemMessage(content=system_prompt),
-            HumanMessage(content=f"Please execute and test this code now using <tool name=\"execute_python_code\">{{\"code\": \"...\"}}</tool> tags.")
+            HumanMessage(content=f"Please execute and test this code now using the appropriate <tool name=\"...\">{{\"code\": \"...\"}}</tool> tags.")
         ])
         response_content = response.content
         # Robust manual parsing
@@ -91,39 +93,46 @@ async def tester_node(state: AgenticCoderState) -> AgenticCoderState:
                 cleaned_args = clean_json(args_str)
                 tool_calls.append({"name": name, "args": json.loads(cleaned_args)})
             except Exception as e:
-                print(f"Failed to parse tool args for {name}: {e}. Args: {args_str}")
+                error_msg = f"Failed to parse tool args for {name}: {e}. Args: {args_str}"
+                print(error_msg)
+                execution_logs.append(error_msg)
     else:
         llm_with_tools = llm.bind_tools(AGENT_TOOLS)
-        response = llm_with_tools.invoke([
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=f"Please execute and test this code now:\n\n{code_summary}")
-        ])
-        response_content = response.content
-        if response.tool_calls:
-            tool_calls = response.tool_calls
+        try:
+            response = await llm_with_tools.ainvoke([
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=f"Please execute and test this code now:\n\n{code_summary}")
+            ])
+            response_content = response.content
+            if response.tool_calls:
+                tool_calls = response.tool_calls
+        except Exception as e:
+            execution_logs.append(f"LLM Tool Call Error: {str(e)}")
+            response = None
     
-    execution_logs = []
     if tool_calls:
         print(f"Tester Agent is using {len(tool_calls)} tools...")
-        from tools.execution_tools import execute_python_code
+        from tools.execution_tools import execute_python_code, compile_and_run_cpp
         from tools.file_tools import read_file, write_file, list_directory
         tool_map = {
             "execute_python_code": execute_python_code,
+            "compile_and_run_cpp": compile_and_run_cpp,
             "read_file": read_file,
             "write_file": write_file,
             "list_directory": list_directory
         }
+        
         for tc in tool_calls:
-            print(f"  -> Tool call requested: {tc['name']}")
-            tool_fn = tool_map.get(tc['name'])
-            if tool_fn:
+            t_name = tc["name"]
+            t_args = tc["args"]
+            if t_name in tool_map:
                 try:
-                    tool_result = tool_fn.invoke(tc["args"])
-                    execution_logs.append(f"> Running code sandbox...\n{tool_result}")
-                    print(f"  -> Execution output: {tool_result}")
+                    res = tool_map[t_name].invoke(t_args)
+                    execution_logs.append(f"TOOL [{t_name}] OUTPUT:\n{res}")
                 except Exception as e:
-                    execution_logs.append(f"> Execution error:\n{e}")
-                    print(f"  -> Execution tool error: {e}")
+                    execution_logs.append(f"TOOL [{t_name}] CRASHED: {str(e)}")
+            else:
+                execution_logs.append(f"TOOL ERROR: Unknown tool '{t_name}'")
     
     content = response_content
     if isinstance(content, list):
@@ -135,18 +144,24 @@ async def tester_node(state: AgenticCoderState) -> AgenticCoderState:
     combined_logs = "\n".join(execution_logs)
     if execution_logs:
         # Trust exit code from the sandbox output
-        if "EXIT CODE: 0" in combined_logs and "Error" not in combined_logs and "Traceback" not in combined_logs:
+        # If any tool output contains "EXIT CODE: 1" or "Compilation Failed" or "Error" or "Crashed", it's a failure
+        failed_indicators = ["EXIT CODE: 1", "Compilation Failed", "Error", "Traceback", "CRASHED", "Failed to parse", "Unknown tool"]
+        if any(ind in combined_logs for ind in failed_indicators):
+            status = "failed"
+            print(f"Tester found issues in execution output.")
+            errors = [combined_logs]
+        elif "EXIT CODE: 0" in combined_logs or "PASSED" in content.upper():
             status = "completed"
             print("Tester approved the code!")
             errors = []
         else:
+            # Ambiguous output but tool was called
             status = "failed"
-            print(f"Tester found issues in execution output.")
-            errors = [combined_logs]
+            errors = ["Ambiguous execution output. Please verify manually or refine tests."]
     else:
         # Fallback: trust LLM text conclusion if no tool was called
         content_upper = content.upper()
-        if "FAILED" in content_upper:
+        if "FAILED" in content_upper or "ISSUE" in content_upper:
             status = "failed"
             print(f"Tester found issues: {content}")
             errors = [content]
